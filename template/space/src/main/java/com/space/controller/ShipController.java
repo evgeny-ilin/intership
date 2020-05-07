@@ -4,13 +4,33 @@ import com.space.model.Ship;
 import com.space.model.ShipType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 public class ShipController {
+
+    List<Ship> ships = new ArrayList<>();
+
+    {
+        ships.add(new Ship(1,
+                "Фрегат",
+                "Мрас",
+                ShipType.TRANSPORT,
+                new Date(),
+                true,
+                0.01,
+                10,
+                5.55));
+        ships.add(new Ship(2,
+                "Бригантина",
+                "Луна",
+                ShipType.MERCHANT,
+                new Date(),
+                true,
+                0.05,
+                100,
+                3.01));
+    }
 
 //    @Autowired
 //    private ShipService shipService;
@@ -32,28 +52,6 @@ public class ShipController {
                                @RequestParam Optional<Integer> pageNumber,
                                @RequestParam Optional<Integer> pageSize)
     {
-
-        List<Ship> ships = new ArrayList<>();
-
-        ships.add(new Ship(1,
-                "Фрегат",
-                "Мрас",
-                ShipType.TRANSPORT,
-                new Date(),
-                true,
-                0.01,
-                10,
-                5.55));
-        ships.add(new Ship(2,
-                "Бригантина",
-                "Луна",
-                ShipType.MERCHANT,
-                new Date(),
-                true,
-                0.05,
-                100,
-                3.01));
-
         return ships;
     }
 
@@ -71,70 +69,54 @@ public class ShipController {
                                @RequestParam Optional<Double> minRating,
                                @RequestParam Optional<Double> maxRating)
     {
-        return 2;
+        return ships.size();
     }
 
-    //TODO Переделать на RequestBody
     @RequestMapping(value = "/rest/ships", method = RequestMethod.POST)
-    public Ship createShip (@RequestParam String name,
-                            @RequestParam String planet,
-                            @RequestParam ShipType shipType,
-                            @RequestParam Long prodDate,
-                            @RequestParam (value = "isUsed", required = false, defaultValue = "false") Boolean isUsed,
-                            @RequestParam Double speed,
-                            @RequestParam Integer crewSize)
+    public Ship createShip (@RequestBody Ship ship)
     {
-        return new Ship(3,
-                name,
-                planet,
-                shipType,
-                new Date(prodDate),
-                isUsed,
-                speed,
-                crewSize,
+        Ship newShip = new Ship(3,
+                ship.getName(),
+                ship.getPlanet(),
+                ship.getShipType(),
+                ship.getProdDate(),
+                ship.isUsed(),
+                ship.getSpeed(),
+                ship.getCrewSize(),
                 12.0);
+        ships.add(newShip);
+        return newShip;
     }
 
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.GET)
     public Ship getShip(@PathVariable Integer id)
     {
-        return new Ship(2,
-                "Бригантина",
-                "Луна",
-                ShipType.MERCHANT,
-                new Date(),
-                true,
-                0.05,
-                100,
-                3.01);
+        return ships.get(id - 1);
     }
 
-    //TODO Переделать на RequestBody
+
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.POST)
-    public Ship updateShip(@PathVariable Integer id,
-                           @RequestParam String name,
-                           @RequestParam String planet,
-                           @RequestParam ShipType shipType,
-                           @RequestParam Long prodDate,
-                           @RequestParam Boolean isUsed,
-                           @RequestParam Double speed,
-                           @RequestParam Integer crewSize)
+    public Ship updateShip(@RequestBody Ship ship, @PathVariable String id)
     {
-        return new Ship(3,
-                name,
-                planet,
-                shipType,
-                new Date(prodDate),
-                isUsed,
-                speed,
-                crewSize,
-                12.0);
+        //int iId = (int) ship.getId();
+        id = id.replace("{", "");
+        id = id.replace("}", "");
+
+        int iId = Integer.parseInt(id);
+
+        ships.get(iId).setName(ship.getName());
+        ships.get(iId).setPlanet(ship.getPlanet());
+        ships.get(iId).setShipType(ship.getShipType());
+        ships.get(iId).setUsed(ship.isUsed());
+        ships.get(iId).setSpeed(ship.getSpeed());
+        ships.get(iId).setCrewSize(ship.getCrewSize());
+
+        return ships.get(iId);
     }
 
-    //TODO Разобраться почему не удаляет в интерфейсе
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.DELETE)
     public void deleteShip(@PathVariable Integer id) {
-
+        ships.remove(id - 1);
     }
 
 }
