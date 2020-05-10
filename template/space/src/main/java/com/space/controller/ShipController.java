@@ -102,7 +102,7 @@ public class ShipController {
         id = id.replace("{", "");
         id = id.replace("}", "");
 
-        int iId = Integer.parseInt(id);
+        int iId = Integer.parseInt(id) - 1;
 
         ships.get(iId).setName(ship.getName());
         ships.get(iId).setPlanet(ship.getPlanet());
