@@ -1,40 +1,54 @@
 package com.space.service;
 
 import com.space.model.Ship;
-import org.hibernate.SessionFactory;
+import com.space.repository.ShipRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @Service
 public class ShipServiceImpl implements ShipService {
+
+//    @PersistenceContext
+//    private EntityManager entityManager;
+
+//    @Autowired
+//    private EntityManagerFactory entityManagerFactory;
+
     @Autowired
-    private EntityManagerFactory entityManagerFactory;
+    private ShipRepository shipRepository;
 
     @Override
-    public void create(Ship ship) {
-
+    @Transactional
+    public void save(Ship ship) {
+        shipRepository.save(ship);
     }
 
     @Override
-    public void update(Ship ship) {
-
-    }
-
-    @Override
+    @Transactional
     public void deleteById(Long id) {
-
+        shipRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public Ship getById(Long id) {
-        return null;
+        return shipRepository.getOne(id);
     }
 
     @Override
+    @Transactional
     public List<Ship> getAll() {
-        return null;
+        return shipRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public List<Ship> query(Ship ship) {
+        return shipRepository.findAll();
     }
 }
