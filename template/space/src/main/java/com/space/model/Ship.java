@@ -1,19 +1,24 @@
 package com.space.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /*TODO @Data is a Lombok annotation to create
    all the getters, setters, equals, hash, and toString methods, based on the fields.*/
 
-
 @Entity
 @Table(name = "ship")
-public class Ship {
-    private @Id @GeneratedValue Long id;
+public class Ship implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String name;
     private String planet;
+    @Enumerated(EnumType.STRING)
     private ShipType shipType;
     private Date prodDate;
     private Boolean isUsed;
@@ -35,7 +40,7 @@ public class Ship {
         this.rating = rating;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -97,5 +102,20 @@ public class Ship {
 
     public void setCrewSize(Integer crewSize) {
         this.crewSize = crewSize;
+    }
+
+    @Override
+    public String toString() {
+        return "Ship{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", planet='" + planet + '\'' +
+                ", shipType=" + shipType +
+                ", prodDate=" + prodDate +
+                ", isUsed=" + isUsed +
+                ", speed=" + speed +
+                ", crewSize=" + crewSize +
+                ", rating=" + rating +
+                '}';
     }
 }
