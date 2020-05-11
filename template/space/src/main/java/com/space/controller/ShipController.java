@@ -28,10 +28,10 @@ public class ShipController {
                                @RequestParam Optional<Double> minRating,
                                @RequestParam Optional<Double> maxRating,
                                @RequestParam Optional<ShipOrder> shipOrder,
-                               @RequestParam Optional<Integer> pageNumber,
-                               @RequestParam Optional<Integer> pageSize)
+                               @RequestParam (defaultValue = "0") Integer pageNumber,
+                               @RequestParam (defaultValue = "3") Integer pageSize)
     {
-        return shipService.getAll();
+        return shipService.getAll(pageNumber,pageSize);
     }
 
     @RequestMapping(value = "/rest/ships/count", method = RequestMethod.GET)
@@ -48,13 +48,13 @@ public class ShipController {
                                @RequestParam Optional<Double> minRating,
                                @RequestParam Optional<Double> maxRating)
     {
-        return shipService.getAll().size();
+        return shipService.getCount();
     }
 
     @RequestMapping(value = "/rest/ships", method = RequestMethod.POST)
     public Ship createShip (@RequestBody Ship ship)
     {
-        return shipService.save(ship);
+        return shipService.create(ship);
     }
 
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.GET)
@@ -67,7 +67,8 @@ public class ShipController {
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.POST)
     public Ship updateShip(@PathVariable Long id, @RequestBody Ship ship)
     {
-        return shipService.save(ship);
+        ship.setId(id);
+        return shipService.update(ship);
     }
 
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.DELETE)

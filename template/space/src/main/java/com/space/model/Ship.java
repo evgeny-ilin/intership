@@ -6,9 +6,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-/*TODO @Data is a Lombok annotation to create
-   all the getters, setters, equals, hash, and toString methods, based on the fields.*/
-
 @Entity
 @Table(name = "ship")
 public class Ship implements Serializable {
@@ -60,7 +57,7 @@ public class Ship implements Serializable {
         return prodDate;
     }
 
-    public boolean isUsed() {
+    public Boolean isUsed() {
         return isUsed;
     }
 
@@ -74,6 +71,10 @@ public class Ship implements Serializable {
 
     public Double getRating() {
         return rating;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setName(String name) {

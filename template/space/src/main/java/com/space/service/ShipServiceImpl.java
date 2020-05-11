@@ -9,6 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/*
+TODO Нужно ли делать проверку?
+ 6. Не валидным считается id, если он:
+ - не числовой
+ - не целое число
+ - не положительный
+ */
+
 @Service
 @Transactional
 public class ShipServiceImpl implements ShipService {
@@ -17,7 +25,13 @@ public class ShipServiceImpl implements ShipService {
     private ShipRepository repository;
 
     @Override
-    public Ship save(Ship ship) {
+    public Ship create(Ship ship) {
+        if (ship.isUsed() == null) ship.setUsed(false);
+        return repository.save(ship);
+    }
+
+    @Override
+    public Ship update(Ship ship) {
         return repository.save(ship);
     }
 
@@ -32,8 +46,12 @@ public class ShipServiceImpl implements ShipService {
     }
 
     @Override
-    public List<Ship> getAll() {
+    public List<Ship> getAll(Integer pageNumber, Integer pageSize) {
         return (List<Ship>) repository.findAll();
     }
 
+    @Override
+    public Integer getCount() {
+        return Math.toIntExact(repository.count());
+    }
 }
