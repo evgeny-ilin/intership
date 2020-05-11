@@ -27,11 +27,11 @@ public class ShipController {
                                @RequestParam Optional<Integer> maxCrewSize,
                                @RequestParam Optional<Double> minRating,
                                @RequestParam Optional<Double> maxRating,
-                               @RequestParam Optional<ShipOrder> shipOrder,
-                               @RequestParam (defaultValue = "0") Integer pageNumber,
-                               @RequestParam (defaultValue = "3") Integer pageSize)
+                               @RequestParam Optional<ShipOrder> order,
+                               @RequestParam (defaultValue = "0") Optional<Integer> pageNumber,
+                               @RequestParam (defaultValue = "3") Optional<Integer> pageSize)
     {
-        return shipService.getAll(pageNumber,pageSize);
+        return shipService.getAll(pageNumber,pageSize, order);
     }
 
     @RequestMapping(value = "/rest/ships/count", method = RequestMethod.GET)

@@ -15,4 +15,11 @@ public enum ShipOrder {
     public String getFieldName() {
         return fieldName;
     }
+
+    @Override
+    public String toString() {
+        return "ShipOrder{" +
+                "fieldName='" + fieldName + '\'' +
+                '}';
+    }
 }
