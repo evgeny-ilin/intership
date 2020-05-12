@@ -43,11 +43,24 @@ public class ShipServiceImpl implements ShipService {
     }
 
     @Override
-    public Ship update(Ship ship) {
+    public Ship update(Ship shipRest) {
         //Check if updatable ship exists
-        getById(ship.getId());
-        ship.setRating();
-        return repository.save(ship);
+        Ship shipForUpdate = getById(shipRest.getId());
+        shipForUpdate = fillFields(shipRest,shipForUpdate);
+        shipForUpdate.setRating();
+        return repository.save(shipForUpdate);
+    }
+
+    private Ship fillFields (Ship shipRest, Ship shipForUpdate) {
+        if (shipRest.getName() != null) shipForUpdate.setName(shipRest.getName());
+        if (shipRest.getPlanet() != null) shipForUpdate.setPlanet(shipRest.getPlanet());
+        if (shipRest.getShipType() != null) shipForUpdate.setShipType(shipRest.getShipType());
+        if (shipRest.getProdDate() != null) shipForUpdate.setProdDate(shipRest.getProdDate());
+        if (shipRest.isUsed() != null) shipForUpdate.setUsed(shipRest.isUsed());
+        if (shipRest.getSpeed() != null) shipForUpdate.setSpeed(shipRest.getSpeed());
+        if (shipRest.getCrewSize() != null) shipForUpdate.setCrewSize(shipRest.getCrewSize());
+
+        return shipForUpdate;
     }
 
     @Override
@@ -59,6 +72,7 @@ public class ShipServiceImpl implements ShipService {
 
     @Override
     public Ship getById(Long id) {
+        Ship.checkId(id);
         Ship ship = null;
         try {
             ship = repository.findById(id).get();

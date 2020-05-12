@@ -1,5 +1,6 @@
 package com.space.model;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -7,13 +8,11 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 @Entity
 @Table(name = "ship")
+@DynamicUpdate
 public class Ship implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,29 +42,37 @@ public class Ship implements Serializable {
         this.rating = rating;
     }
 
-    public boolean checkParams() {
+    public boolean checkParams(Optional<Long> id) {
         if (name == null && planet == null && shipType == null && prodDate == null && isUsed == null || speed == null && crewSize == null)
             return false;
 
-        if (name == null || name.isEmpty() || name.length() > 50) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Name is not valid: " + name);
-        if (planet == null || planet.isEmpty() || planet.length() > 50) throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"planet is not valid: " + planet);
-        if (shipType == null || shipType.name() == null || shipType.name().isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"shipType is not valid: " + shipType);
+        if (id.isPresent()) {
+            checkId(id.get());
+            setId(id.get());
+        }
+
+        if (name == null || name.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Name is not valid: " + name);
+        if (name.length() > 50) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Name is not valid: " + name);
+        if ((!id.isPresent() && planet == null) || (!id.isPresent() && planet.isEmpty())) throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"planet is not valid: " + planet);
+        if (!id.isPresent() && planet.length() > 50) throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"planet is not valid: " + planet);
+        if ((shipType == null || shipType.name() == null || shipType.name().isEmpty()) && !id.isPresent()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"shipType is not valid: " + shipType);
 
         //Check prodDate
         Calendar calStart = new GregorianCalendar();
         calStart.set(Calendar.YEAR,2800);
         Calendar calEnd = new GregorianCalendar();
         calEnd.set(Calendar.YEAR,3019);
-        if (prodDate == null || prodDate.after(calEnd.getTime()) || prodDate.before(calStart.getTime())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"prodDate is not valid: " + prodDate);
+        if ((!id.isPresent() && prodDate == null) || (!id.isPresent() && prodDate.after(calEnd.getTime()))) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"prodDate is not valid: " + prodDate);
+        if (!id.isPresent() && prodDate.before(calStart.getTime())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"prodDate is not valid: " + prodDate);
 
         if (isUsed == null) isUsed = false;
         //Check speed
-        if (speed == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"speed is null");
+        if (!id.isPresent() && speed == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"speed is null");
         speed = new BigDecimal(speed).setScale(2,RoundingMode.HALF_UP).doubleValue();
 
         if (speed < 0.01 || speed > 0.99) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"speed is not valid: " + speed);
 
-        if (crewSize == null || crewSize < 1 || crewSize > 9999) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"crewSize is not valid: " + crewSize);
+        if ((!id.isPresent() && crewSize == null) || crewSize < 1 || crewSize > 9999) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"crewSize is not valid: " + crewSize);
         return true;
     }
 
@@ -138,8 +145,11 @@ public class Ship implements Serializable {
     }
 
     public void setRating() {
+        if (prodDate == null || speed == null) return;
         double k = isUsed ? 0.5 : 1;
-        double r = (80 * speed * k) / (3019 - prodDate.getYear() + 1);
+        Calendar calProdDate = new GregorianCalendar();
+        calProdDate.setTime(prodDate);
+        double r = (80 * speed * k) / (3019 - calProdDate.get(Calendar.YEAR) + 1);
         this.rating = new BigDecimal(r).setScale(2,RoundingMode.HALF_UP).doubleValue();
     }
 
