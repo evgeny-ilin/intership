@@ -1,6 +1,5 @@
 package com.space.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.space.controller.ShipOrder;
 import com.space.model.Ship;
 import com.space.model.ShipType;
@@ -13,7 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.sql.Date;
 
@@ -35,20 +35,85 @@ public class ShipServiceImpl implements ShipService {
     @Autowired
     private EntityManager entityManager;
 
+    private void checkId(Long id) {
+        if (id == null || id < 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Id is not valid: "+id);
+    }
+
     @Override
     public Ship create(Ship ship) {
+        if (isEmptyBody(ship)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Body is empty");
+        checkParams(ship);
         if (ship.isUsed() == null) ship.setUsed(false);
         ship.setRating();
         return repository.save(ship);
     }
 
     @Override
-    public Ship update(Ship shipRest) {
+    public Ship update(Long id, Ship shipRest) {
+        checkId(id);
+        shipRest.setId(id);
         //Check if updatable ship exists
-        Ship shipForUpdate = getById(shipRest.getId());
+        Ship shipForUpdate = getById(id);
+
+        if (isEmptyBody(shipRest)) return shipForUpdate;
+
+        //Fill empty fields
         shipForUpdate = fillFields(shipRest,shipForUpdate);
+
+        checkParams(shipForUpdate);
         shipForUpdate.setRating();
+
         return repository.save(shipForUpdate);
+    }
+
+    private boolean isEmptyBody (Ship ship) {
+        String name = ship.getName();
+        String planet = ship.getPlanet();
+        ShipType shipType = ship.getShipType();
+        java.util.Date prodDate = ship.getProdDate();
+        Boolean isUsed = ship.isUsed();
+        Double speed = ship.getSpeed();
+        Integer crewSize = ship.getCrewSize();
+
+        if (name == null && planet == null && shipType == null && prodDate == null && isUsed == null && speed == null && crewSize == null) {
+            //If creation in progress - throw, else - we have an update then return
+            if (ship.getId() == null)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Empty body request!");
+            else
+                return true;
+        }
+        return false;
+    }
+
+    private void checkParams(Ship ship) {
+        if (ship == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Ship is null!");
+
+        String name = ship.getName();
+        String planet = ship.getPlanet();
+        ShipType shipType = ship.getShipType();
+        java.util.Date prodDate = ship.getProdDate();
+        Boolean isUsed = ship.isUsed();
+        Double speed = ship.getSpeed();
+        Integer crewSize = ship.getCrewSize();
+
+        if (name == null || name.isEmpty() || name.length() > 50) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Name is not valid: " + name);
+        if (planet == null || planet.isEmpty() || planet.length() > 50) throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"planet is not valid: " + planet);
+        if (shipType == null || shipType.name() == null || shipType.name().isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"shipType is not valid: " + shipType);
+
+        //Check prodDate
+        Calendar calStart = new GregorianCalendar();
+        calStart.set(Calendar.YEAR,2800);
+        Calendar calEnd = new GregorianCalendar();
+        calEnd.set(Calendar.YEAR,3019);
+        if (prodDate == null || prodDate.after(calEnd.getTime())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"prodDate is not valid: " + prodDate);
+        if (prodDate.before(calStart.getTime())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"prodDate is not valid: " + prodDate);
+
+        //Check speed
+        if (speed == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"speed is null");
+        speed = new BigDecimal(speed).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        if (speed < 0.01 || speed > 0.99) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"speed is not valid: " + speed);
+
+        if (crewSize == null || crewSize < 1 || crewSize > 9999) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"crewSize is not valid: " + crewSize);
     }
 
     private Ship fillFields (Ship shipRest, Ship shipForUpdate) {
@@ -59,20 +124,21 @@ public class ShipServiceImpl implements ShipService {
         if (shipRest.isUsed() != null) shipForUpdate.setUsed(shipRest.isUsed());
         if (shipRest.getSpeed() != null) shipForUpdate.setSpeed(shipRest.getSpeed());
         if (shipRest.getCrewSize() != null) shipForUpdate.setCrewSize(shipRest.getCrewSize());
+        if (shipForUpdate.isUsed() == null) shipForUpdate.setUsed(false);
 
         return shipForUpdate;
     }
 
     @Override
     public void deleteById(Long id) {
-        Ship.checkId(id);
+        checkId(id);
         getById(id);
         repository.deleteById(id);
     }
 
     @Override
     public Ship getById(Long id) {
-        Ship.checkId(id);
+        checkId(id);
         Ship ship = null;
         try {
             ship = repository.findById(id).get();

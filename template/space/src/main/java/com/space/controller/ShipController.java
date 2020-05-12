@@ -89,7 +89,6 @@ public class ShipController {
 
     @RequestMapping(value = "/rest/ships", method = RequestMethod.POST)
     public ResponseEntity<Ship> createShip (@RequestBody Ship ship) {
-        if (ship == null || !ship.checkParams(Optional.empty())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empty request body");
         return new ResponseEntity<>(shipService.create(ship), HttpStatus.OK);
     }
 
@@ -103,8 +102,7 @@ public class ShipController {
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.POST)
     public ResponseEntity<Ship> updateShip(@PathVariable Long id, @RequestBody Ship ship)
     {
-        if (!ship.checkParams(Optional.of(id))) return new ResponseEntity<>(shipService.getById(id), HttpStatus.OK);
-        return new ResponseEntity<>(shipService.update(ship),HttpStatus.OK);
+        return new ResponseEntity<>(shipService.update(id, ship),HttpStatus.OK);
     }
 
     @RequestMapping(value = "/rest/ships/{id}", method = RequestMethod.DELETE)
